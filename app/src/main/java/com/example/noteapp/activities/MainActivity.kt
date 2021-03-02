@@ -2,14 +2,20 @@ package com.example.noteapp.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.noteapp.AppConfig
 import com.example.noteapp.R
 import com.example.noteapp.adapter.NoteAdapter
 import com.example.noteapp.model.Note
+import com.example.noteapp.server.NoteClient
 import com.example.noteapp.viewmodel.NoteViewModel
 import kotlinx.android.synthetic.main.activity_main.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class MainActivity : AppCompatActivity() {
@@ -20,9 +26,14 @@ class MainActivity : AppCompatActivity() {
             NoteViewModel.NoteViewModelFactory(this.application)
         )[NoteViewModel::class.java]
     }
+
     private val adapter: NoteAdapter by lazy {
         NoteAdapter(this@MainActivity, onItemClick, onItemDelete)
     }
+
+    private val client:NoteClient = AppConfig.retrofit.create(NoteClient::class.java)
+
+    private  var service:Call<List<Note>> = client.getAllNote()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,9 +63,25 @@ class MainActivity : AppCompatActivity() {
         fetchData()
 
     }
-
+    //gọi data
     private fun fetchData() {
+        service = client.getAllNote()
+        service.enqueue(object : Callback<List<Note>> {
 
+            override fun onResponse(call: Call<List<Note>>, response: Response<List<Note>>) {
+                Toast.makeText(this@MainActivity, response.code().toString(), Toast.LENGTH_LONG).show()
+                if (response.isSuccessful){
+                    val list = response.body()
+                    adapter.setNotes(list!!) // do lấy mặc định từ server nên k null
+                    swipe_layout.isRefreshing = false
+                }
+            }
+
+            override fun onFailure(call: Call<List<Note>>, t: Throwable) {
+                Toast.makeText(this@MainActivity, "error: $t", Toast.LENGTH_LONG).show()
+                swipe_layout.isRefreshing = false
+            }
+        })
     }
 
     private val onItemClick: (Note) -> Unit = {

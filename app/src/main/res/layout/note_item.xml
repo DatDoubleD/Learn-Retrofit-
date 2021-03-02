@@ -47,4 +47,13 @@
         app:layout_constraintStart_toEndOf="@id/txt_item_title"
         app:layout_constraintTop_toBottomOf="@+id/img_note" />
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/txt_item_des"
+        app:layout_constraintTop_toBottomOf="@+id/txt_item_des" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
