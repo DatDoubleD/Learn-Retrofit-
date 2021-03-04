@@ -15,5 +15,8 @@ class Note(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "note_id_col")
     var id: Int = 0
+    override fun toString(): String {
+        return "Note(title='$title', description='$description', imgPath='$imgPath', id=$id)"
+    }
 
 }

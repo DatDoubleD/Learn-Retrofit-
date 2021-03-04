@@ -5,10 +5,10 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.noteapp.AppConfig
@@ -40,20 +40,42 @@ class AddNoteActivity : AppCompatActivity() {
         const val REQUEST_PERMISSION_CODE = 234
     }
 
-    private lateinit var uriImg: Uri
+    private val client: NoteClient = AppConfig.retrofit.create(NoteClient::class.java)
 
+    private lateinit var uriImg: Uri
+    private lateinit var imgPath: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_note)
-        //set event
+        addEvents()
+    }
+
+    private fun addEvents() {
         btn_add.setOnClickListener {
             uploadImg()
         }
-        img_note_add.setOnClickListener {
-            Toast.makeText(this,"check!!!",Toast.LENGTH_LONG).show()
+        imgNote.setOnClickListener {
+            Toast.makeText(this, "check!!!", Toast.LENGTH_LONG).show()
             requestPermissionAndPickImage()
         }
+    }
 
+    private fun uploadNote(imgPath: String) {
+        val note: Note =
+            Note(edt_note_title_add.text.toString(), edt_note_des_add.text.toString(), imgPath)
+        val call: Call<Note> = client.addNote(note)
+        call.enqueue(object : Callback<Note> {
+            override fun onResponse(call: Call<Note>, response: Response<Note>) {
+                if (response.isSuccessful) {
+                    Log.d("TAG", response.body().toString()) // response.body ở đây là 1 cái note
+                    finish()
+                }
+            }
+
+            override fun onFailure(call: Call<Note>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
     }
 
     private fun requestPermissionAndPickImage() {
@@ -71,11 +93,14 @@ class AddNoteActivity : AppCompatActivity() {
         }
     }
 
+    //pick Image có dc uriImg , dùng uriImg -> lấy File(PathImg) -> up len server -> respones thành công
+    //dùng respones.body.imagePath để lấy link Image
     private fun pickImage() {
         val intent = Intent()
         intent.type = "image/*"
         intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(Intent.createChooser(intent, "Select image to upload"), PICK_IMAGE_REQUEST
+        startActivityForResult(
+            Intent.createChooser(intent, "Select image to upload"), PICK_IMAGE_REQUEST
         )
 
     }
@@ -83,33 +108,33 @@ class AddNoteActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.data != null) {
-            img_note_add.setImageURI(data.data)
+            imgNote.setImageURI(data.data)
             uriImg = data.data!!
         }
     }
 
 
-    private val client: NoteClient = AppConfig.retrofit.create(NoteClient::class.java)
     private fun uploadImg() {
         //đọc kỹ api và doc của phần backend để làm phần này
         val file = File(Utils.getPathFromUri(this, uriImg)!!)
         val requestBody =
             RequestBody.create(MediaType.parse(contentResolver.getType(uriImg)!!), file)
-
         val imagePart = MultipartBody.Part.createFormData("picture", file.name, requestBody)
+
         val call: Call<Image> = client.uploadImage(imagePart)
         call.enqueue(object : Callback<Image> {
             override fun onResponse(call: Call<Image>, response: Response<Image>) {
                 if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        var imagePath = response.body()!!.imagePath
-                        Log.d("ADD_NOTE", imagePath)
+                    response.body()?.let {
+                        imgPath = it.imagePath
+                        Log.d("ADD_NOTE", imgPath)
+                        uploadNote(imgPath)
                     }
                 }
             }
 
             override fun onFailure(call: Call<Image>, t: Throwable) {
-                TODO("Not yet implemented")
+                Log.d("ERR", t.toString())
             }
         })
     }

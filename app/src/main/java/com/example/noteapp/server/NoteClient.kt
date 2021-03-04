@@ -4,10 +4,7 @@ import com.example.noteapp.model.Image
 import com.example.noteapp.model.Note
 import okhttp3.MultipartBody
 import retrofit2.Call
-import retrofit2.http.GET
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.Part
+import retrofit2.http.*
 
 interface NoteClient {
     @GET("/note")
@@ -17,4 +14,7 @@ interface NoteClient {
     @Multipart
     @POST("/upload")
     fun uploadImage(@Part img:MultipartBody.Part): Call<Image>
+
+    @POST("/note")
+    fun addNote(@Body note: Note):Call<Note>
 }
