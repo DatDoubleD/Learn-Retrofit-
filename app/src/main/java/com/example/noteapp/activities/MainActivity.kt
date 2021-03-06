@@ -2,6 +2,7 @@ package com.example.noteapp.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -65,7 +66,7 @@ class MainActivity : AppCompatActivity() {
     }
     //gọi data
     private fun fetchData() {
-        service = client.getAllNote()
+        service = client.getAllNote()//khoi tạo lại để gọi, gọi rùi -> gọi lại nữa -> lỗi
         service.enqueue(object : Callback<List<Note>> {
 
             override fun onResponse(call: Call<List<Note>>, response: Response<List<Note>>) {
@@ -91,6 +92,20 @@ class MainActivity : AppCompatActivity() {
 
     }
     private val onItemDelete: (Note) -> Unit = {
-        noteViewModel.deleteNote(it)
+        //noteViewModel.deleteNote(it)
+        val call = client.deleteNote(it.id)
+        call.enqueue(object : Callback<Note> {
+            override fun onResponse(call: Call<Note>, response: Response<Note>) {
+                if (response.isSuccessful) {
+                    Log.d("DELETE_NOTE", response.body().toString())
+                    fetchData()
+                }
+            }
+
+            override fun onFailure(call: Call<Note>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
+
     }
 }

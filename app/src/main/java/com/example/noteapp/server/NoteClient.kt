@@ -17,4 +17,11 @@ interface NoteClient {
 
     @POST("/note")
     fun addNote(@Body note: Note):Call<Note>
+
+    //update, kieu tra về là note đã updated
+    @PUT("note/{id}")
+    fun updateNote(@Path("id") id :Int, @Body note: Note): Call<Note>
+
+    @DELETE("note/{id}")
+    fun deleteNote(@Path("id") id: Int): Call<Note>
 }

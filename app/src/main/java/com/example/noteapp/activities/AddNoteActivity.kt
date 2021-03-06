@@ -102,7 +102,6 @@ class AddNoteActivity : AppCompatActivity() {
         startActivityForResult(
             Intent.createChooser(intent, "Select image to upload"), PICK_IMAGE_REQUEST
         )
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -110,9 +109,9 @@ class AddNoteActivity : AppCompatActivity() {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.data != null) {
             imgNote.setImageURI(data.data)
             uriImg = data.data!!
+            Log.d("TAG", uriImg.toString())
         }
     }
-
 
     private fun uploadImg() {
         //đọc kỹ api và doc của phần backend để làm phần này
